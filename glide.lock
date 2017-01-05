@@ -1,0 +1,10 @@
+hash: 6587f143a9ce121ddbb3ec7cbea7f5c064e76da1af6d1cb39a1e761d0338ef19
+updated: 2017-01-01T12:45:57.345348916Z
+imports:
+- name: github.com/garyburd/redigo
+  version: 8873b2f1995f59d4bcdd2b0dc9858e2cb9bf0c13
+  subpackages:
+  - redis
+- name: github.com/gorilla/mux
+  version: 0eeaf8392f5b04950925b8a69fe70f110fa7cbfc
+testImports: []

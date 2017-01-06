@@ -44,8 +44,6 @@ After a successful start, open your browser and go to localhost:3000 if you did 
 ## NB
 This is not yet done. The dashboard is very basic right now.
 
-I am currently building out the dashboard. The API's for the dashboard is stable
-
 The stats data shown on the dashboard is ephemeral. Only the last 10 stats is stored and saved to disk when the program exists.
 
 ## TODO
@@ -53,6 +51,7 @@ The stats data shown on the dashboard is ephemeral. Only the last 10 stats is st
 - Add OPS/SEC widget to the dashboard
 - Display table containing redis server information
 - Display the stats in the terminal
+- Probably use event source to send new stats data to the client
 
 ## Technologies
 

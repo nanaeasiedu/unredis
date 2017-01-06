@@ -9,14 +9,14 @@ export default class Graph extends Component {
     this.graph = null;
   }
 
-  drawGraph (data, nextData) {
+  drawGraph (data, previousData) {
     if (this.graph) {
-      if (_.isEqual(data, nextData)) return;
+      if (_.isEqual(data, previousData)) return;
 
       var diff = [];
       for (var i = 0, l = data.length; i < l; i++) {
-        var dataPoint = _.find(nextData, { created_at: data[i].created_at });
-        if (!dataPoint) diff.push(nextData[i]);
+        var dataPoint = _.find(previousData, { created_at: data[i].created_at });
+        if (!dataPoint) diff.push(data[i]);
       }
 
       diff.forEach((point) => {

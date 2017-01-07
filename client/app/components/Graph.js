@@ -9,6 +9,11 @@ export default class Graph extends Component {
     this.graph = null;
   }
 
+  componentWillUnmount () {
+    this.graph.destroy();
+    this.graph = null;
+  }
+
   drawGraph (data, previousData) {
     if (this.graph) {
       if (_.isEqual(data, previousData)) return;

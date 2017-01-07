@@ -1,6 +1,6 @@
 ## UNREDIS - Another Redis Monitoring Tool
 
-Yet another redis monitoring tool built with Golang
+Another redis monitoring tool built with Golang
 
 ## Installation
 
@@ -39,7 +39,7 @@ For more information:
 $ unredis --help
 ```
 
-After a successful start, open your browser and go to localhost:3000 if you did not specify a different port to run the server on
+After a successful start, go to [localhost:3000](http://localhost:3000) in your browser if you did not specify a different port to run the server on
 
 ## NB
 This is not yet done. The dashboard is very basic right now.
@@ -48,10 +48,10 @@ The stats data shown on the dashboard is ephemeral. Only the last 10 stats is st
 
 ## TODO
 
-- Add OPS/SEC widget to the dashboard
-- Display table containing redis server information
-- Display the stats in the terminal
-- Probably use event source to send new stats data to the client
+- [] Add OPS/SEC widget to the dashboard
+- [] Display table containing redis server information
+- [] Display the stats in the terminal
+- [] Use event source to send new stats data to the client
 
 ## Technologies
 

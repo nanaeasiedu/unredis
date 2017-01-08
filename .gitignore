@@ -31,3 +31,4 @@ vendor/
 unredis
 unredis_stats
 node_modules
+*.bundle.js.map

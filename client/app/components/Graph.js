@@ -5,17 +5,20 @@ import _ from 'lodash';
 export default class Graph extends Component {
   constructor (props) {
     super(props);
+    this.keyspaceGraph = null;
+    this.memGraph = null;
+    this.instantsGraph = null;
 
-    this.graph = null;
+    this.drawnGraph = false;
   }
 
   componentWillUnmount () {
-    this.graph.destroy();
-    this.graph = null;
+    this.keyspaceGraph.destroy();
+    this.keyspaceGraph = null;
   }
 
   drawGraph (data, previousData) {
-    if (this.graph) {
+    if (this.drawnGraph) {
       if (_.isEqual(data, previousData)) return;
 
       var diff = [];
@@ -27,21 +30,21 @@ export default class Graph extends Component {
       diff.forEach((point) => {
         var label = utils.humanizeDate(point.created_at);
         var hit = point.hit_rate;
-        var ops = point.instantaneous_ops_per_sec;
+        var ops = point.keyspace_misses;
 
-        this.graph.addData([hit, ops], label);
-        this.graph.removeData();
+        this.keyspaceGraph.addData([hit, ops], label);
+        this.keyspaceGraph.removeData();
       });
     } else {
       var labels = [];
       var dataForHitRate = [];
-      var dataForOpsPerSec = [];
+      var dataForMisses = [];
 
       data.sort((a, b) => a.created_at > b.created_at ? 1 : a.created_at < b.created_at ? -1 : 0);
       data.forEach((graphData) => {
         labels.push(utils.humanizeDate(graphData.created_at));
         dataForHitRate.push(graphData.hit_rate);
-        dataForOpsPerSec.push(graphData.instantaneous_ops_per_sec);
+        dataForMisses.push(graphData.keyspace_misses);
       });
       var startingData = {
         labels: labels,
@@ -55,18 +58,20 @@ export default class Graph extends Component {
             data: dataForHitRate
           },
           {
-            label: 'Instantaneous Ops Per Sec',
+            label: 'Keyspace Misses - keyspace hits/(keyspace hits + keyspace misses)',
             fillColor: "rgba(151,187,205,0.2)",
             strokeColor: "rgba(151,187,205,1)",
             pointColor: "rgba(151,187,205,1)",
             pointStrokeColor: "#fff",
-            data: dataForOpsPerSec
+            data: dataForMisses
           }
         ]
       };
       const canvas = document.getElementById('line-chart');
       const ctx = canvas.getContext('2d');
-      this.graph = new Chart(ctx).Line(startingData, { responsive: true });
+      this.keyspaceGraph = new Chart(ctx).Line(startingData, { responsive: true });
+      document.getElementById('js-legend').innerHTML = this.keyspaceGraph.generateLegend();
+      this.drawnGraph = true;
     }
   }
 
@@ -80,18 +85,50 @@ export default class Graph extends Component {
 
   render () {
     return (
-      <div className="row">
-        <div className="col-lg-12">
-          <div className="panel panel-default">
-            <div className="panel-heading">Real Time Statistics</div>
-            <div className="panel-body">
-              <div className="canvas-wrapper">
-                <canvas className="stats-chart" id="line-chart" height="200" width="600"></canvas>
+      <div>
+
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="panel panel-default">
+              <div className="panel-heading">Keyspace</div>
+              <div className="panel-body">
+                <div id="js-legend" className="chart-legend"></div>
+                <div className="canvas-wrapper">
+                  <canvas className="stats-chart" id="line-chart" height="200" width="600"></canvas>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="row">
+          <div className="col-lg-6">
+            <div className="panel panel-default">
+              <div className="panel-heading">Memory Usage</div>
+              <div className="panel-body">
+                <div id="mem-legend" className="chart-legend"></div>
+                <div className="canvas-wrapper">
+                  <canvas className="stats-chart" id="mem-chart" height="200" width="600"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-6">
+            <div className="panel panel-default">
+              <div className="panel-heading">Instantaneous Ops Per Sec</div>
+              <div className="panel-body">
+                <div id="ops-legend" className="chart-legend"></div>
+                <div className="canvas-wrapper">
+                  <canvas className="stats-chart" id="ops-chart" height="200" width="600"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
     );
   }
 }

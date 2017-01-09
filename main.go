@@ -27,16 +27,6 @@ const (
 	version = "v0.0.1-rc"
 )
 
-func getEnv() (env string) {
-	env = os.Getenv("ENV")
-
-	if env == "" {
-		env = "development"
-	}
-
-	return
-}
-
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(200)

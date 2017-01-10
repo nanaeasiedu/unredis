@@ -8,8 +8,11 @@ import (
 	"os"
 	"os/signal"
 	"text/template"
+	"time"
 
+	"github.com/apcera/termtables"
 	"github.com/gorilla/mux"
+	"github.com/gosuri/uilive"
 )
 
 var (
@@ -59,6 +62,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	serverUnRedis = NewUnRedis(redisHost, redisPort, redisPassword, redisDatabase).(*UnRedis)
+
 	log.Println("Connecting to redis server")
 	err := serverUnRedis.Connect()
 
@@ -68,7 +72,28 @@ func main() {
 
 	log.Println("Connected to redis server")
 	defer serverUnRedis.DisConnect()
-	go serverUnRedis.CollectStats(c)
+	stats := serverUnRedis.CollectStats(c)
+
+	writer := uilive.New()
+	writer.Start()
+	defer writer.Stop()
+
+	go func() {
+		for {
+			getStatistics := <-stats
+			table := termtables.CreateTable()
+			table.AddHeaders("Time", "Ops/sec", "Hit Rate", "Keyspace Hits", "Keyspace Misses", "Used Memory (KB)", "Last Save Time")
+
+			for i := 0; i < len(getStatistics); i++ {
+				statInfo := getStatistics[i]
+				createdAtTime := time.Unix(0, statInfo.CreatedAt*int64(time.Millisecond))
+				lastSaveTime := time.Unix(0, statInfo.RDBLastSaveTime*int64(time.Second))
+				table.AddRow(createdAtTime.Format("15:04:05"), statInfo.OpsPerSec, statInfo.HitRate, statInfo.KeyspaceHits, statInfo.KeySpaceMisses, fmt.Sprintf("%.2f", statInfo.UsedMemory/1024), lastSaveTime.Format("02/01/2006 - 15:04:05"))
+			}
+
+			fmt.Fprint(writer, table.Render())
+		}
+	}()
 
 	router := mux.NewRouter()
 	router.StrictSlash(true)

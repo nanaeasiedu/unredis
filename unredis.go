@@ -32,11 +32,11 @@ type keysMap struct {
 type IUnRedis interface {
 	Connect() error
 	DisConnect()
-	GetKeysTree(string) (map[string]interface{}, error)
-	GetKeys(string) ([]string, error)
-	GetServerInfo() (map[string]map[string]interface{}, error)
-	Exec(string) (interface{}, error)
-	CollectStats(chan os.Signal)
+	GetKeysTree(prefix string) (reply map[string]interface{}, err error)
+	GetKeys(prefix string) (reply []string, err error)
+	GetServerInfo() (reply map[string]map[string]interface{}, err error)
+	Exec(command string) (reply interface{}, err error)
+	CollectStats(c chan os.Signal) (stats chan []*stat)
 }
 
 type unRedisMap map[string]interface{}
@@ -287,35 +287,41 @@ func (u *UnRedis) collect() (*stat, error) {
 
 // CollectStats gets some necessary information regarding the redis server
 // it uses a ticker to collect the stats
-func (u *UnRedis) CollectStats(c chan os.Signal) {
+func (u *UnRedis) CollectStats(c chan os.Signal) chan []*stat {
 	data := u.processFile()
+	stats := make(chan []*stat)
 
 	if data != nil {
 		u.stats = data
 	}
 
-	ticker := time.NewTicker(2 * time.Second)
-	for {
-		select {
-		case <-ticker.C:
-			stat, err := u.collect()
-			if err != nil {
-				log.Println(err)
-			}
+	go func() {
+		ticker := time.NewTicker(2 * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				stat, err := u.collect()
+				if err != nil {
+					log.Println(err)
+				}
 
-			u.Lock()
-			u.stats = append(u.stats, stat)
-			// truncate the stats array when the length is greater than 10
-			if len(u.stats) > 10 {
-				u.stats = u.stats[len(u.stats)-10:]
-			}
-			u.Unlock()
+				u.Lock()
+				u.stats = append(u.stats, stat)
+				// truncate the stats array when the length is greater than 10
+				if len(u.stats) > 10 {
+					u.stats = u.stats[len(u.stats)-10:]
+				}
+				u.Unlock()
+				stats <- u.stats
 
-		case <-c:
-			ticker.Stop()
-			strToWrite := statsToString(u.stats)
-			ioutil.WriteFile("unredis_stats", []byte(strToWrite), 0644)
-			os.Exit(0)
+			case <-c:
+				ticker.Stop()
+				strToWrite := statsToString(u.stats)
+				ioutil.WriteFile("unredis_stats", []byte(strToWrite), 0644)
+				os.Exit(0)
+			}
 		}
-	}
+	}()
+
+	return stats
 }

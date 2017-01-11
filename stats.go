@@ -24,6 +24,11 @@ const (
 )
 
 const (
+	_  = iota
+	KB = 1 << (10 * iota)
+)
+
+const (
 	fileHeader = "instantaneous_ops_per_sec,hit_rate,used_memory,mem_fragmentation_ratio,evicted_keys,blocked_clients,connected_clients,connected_slaves,keyspace_hits,rdb_last_save_time,rdb_changes_since_last_save,rejected_conncections,keyspace_misses,created_at"
 )
 
@@ -108,6 +113,9 @@ func newStatFromInfo(info map[string]map[string]interface{}) *stat {
 	statArr[RejectedConnections] = (info["Stats"]["rejected_connections"]).(string)
 	statArr[KeySpaceMisses] = (info["Stats"]["keyspace_misses"]).(string)
 	statArr[CreatedAt] = fromInt64(time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+
+	calculateKB := toFloat(statArr[UsedMemory]) / KB
+	statArr[UsedMemory] = fromFloat(calculateKB)
 
 	if toInt(statArr[KeyspaceHits]) == 0 {
 		statArr[HitRate] = "0"

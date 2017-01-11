@@ -29,17 +29,16 @@ type keysMap struct {
 	Leaf     bool     `json:"leaf"`
 }
 
+// IUnRedis defines the interface that must be implemented
 type IUnRedis interface {
 	Connect() error
 	DisConnect()
-	GetKeysTree(prefix string) (reply map[string]interface{}, err error)
-	GetKeys(prefix string) (reply []string, err error)
-	GetServerInfo() (reply map[string]map[string]interface{}, err error)
-	Exec(command string) (reply interface{}, err error)
+	GetKeysTree(prefix string) (map[string]interface{}, error)
+	GetKeys(prefix string) ([]string, error)
+	GetServerInfo() (map[string]map[string]interface{}, error)
+	Exec(command string) (interface{}, error)
 	CollectStats(c chan os.Signal) (stats chan []*stat)
 }
-
-type unRedisMap map[string]interface{}
 
 type UnRedis struct {
 	Connection redis.Conn
@@ -101,6 +100,7 @@ func (u *UnRedis) getPrefixString(prefix string) (search string) {
 	return
 }
 
+// processReply processes the reply gotten from redis
 func (u *UnRedis) processReply(reply interface{}) interface{} {
 	switch reply.(type) {
 	case int64:

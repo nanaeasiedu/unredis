@@ -88,7 +88,7 @@ func main() {
 				statInfo := getStatistics[i]
 				createdAtTime := time.Unix(0, statInfo.CreatedAt*int64(time.Millisecond))
 				lastSaveTime := time.Unix(0, statInfo.RDBLastSaveTime*int64(time.Second))
-				table.AddRow(createdAtTime.Format("15:04:05"), statInfo.OpsPerSec, statInfo.HitRate, statInfo.KeyspaceHits, statInfo.KeySpaceMisses, fmt.Sprintf("%.2f", statInfo.UsedMemory/1024), lastSaveTime.Format("02/01/2006 - 15:04:05"))
+				table.AddRow(createdAtTime.Format("15:04:05"), statInfo.OpsPerSec, statInfo.HitRate, statInfo.KeyspaceHits, statInfo.KeySpaceMisses, fmt.Sprintf("%.2f", statInfo.UsedMemory), lastSaveTime.Format("02/01/2006 - 15:04:05"))
 			}
 
 			fmt.Fprint(writer, table.Render())

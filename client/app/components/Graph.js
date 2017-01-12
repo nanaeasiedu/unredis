@@ -30,15 +30,25 @@ export default class Graph extends Component {
       diff.forEach((point) => {
         var label = utils.humanizeDate(point.created_at);
         var hit = point.hit_rate;
-        var ops = point.keyspace_misses;
+        var keypsaceMisses = point.keyspace_misses;
+        var mem = point.used_memory;
+        var ops = point.instantaneous_ops_per_sec;
 
-        this.keyspaceGraph.addData([hit, ops], label);
+        this.keyspaceGraph.addData([hit, keypsaceMisses], label);
+        this.memGraph.addData([mem], label);
+        this.instantsGraph.addData([ops], label);
+
         this.keyspaceGraph.removeData();
+        this.memGraph.removeData();
+        this.instantsGraph.removeData();
       });
     } else {
       var labels = [];
       var dataForHitRate = [];
       var dataForMisses = [];
+      var lastFiveDataPoints = data.slice(data.length - 5);
+      var lastFiveMem = [];
+      var lastFiveOps = [];
 
       data.sort((a, b) => a.created_at > b.created_at ? 1 : a.created_at < b.created_at ? -1 : 0);
       data.forEach((graphData) => {
@@ -46,30 +56,70 @@ export default class Graph extends Component {
         dataForHitRate.push(graphData.hit_rate);
         dataForMisses.push(graphData.keyspace_misses);
       });
-      var startingData = {
+      lastFiveDataPoints.forEach((data) => {
+        lastFiveMem.push(data.used_memory);
+        lastFiveOps.push(data.instantaneous_ops_per_sec);
+      });
+
+      var lastFiveLabels = labels.slice(labels.length - 5);
+
+      const startingData = {
         labels: labels,
         datasets: [
           {
-            label: 'Hit rate',
-            fillColor: "rgba(220,220,220,0.2)",
-            strokeColor: "rgba(220,220,220,1)",
-            pointColor: "rgba(220,220,220,1)",
-            pointStrokeColor: "#fff",
+            label: 'Hit rate - keyspace hits/(keyspace hits + keyspace misses)',
+            fillColor: 'rgba(220,220,220,0.2)',
+            strokeColor: 'rgba(220,220,220,1)',
+            pointColor: 'rgba(220,220,220,1)',
+            pointStrokeColor: '#fff',
             data: dataForHitRate
           },
           {
-            label: 'Keyspace Misses - keyspace hits/(keyspace hits + keyspace misses)',
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
-            pointStrokeColor: "#fff",
+            label: 'Keyspace Misses',
+            fillColor: 'rgba(151,187,205,0.2)',
+            strokeColor: 'rgba(151,187,205,1)',
+            pointColor: 'rgba(151,187,205,1)',
+            pointStrokeColor: '#fff',
             data: dataForMisses
           }
         ]
       };
+
+      const startingDataForMem = {
+        labels: lastFiveLabels,
+        datasets: [{
+          label: 'Memory Usage',
+          fillColor: '#1ebfae',
+          strokeColor: 'rgba(220,220,220,1)',
+          pointColor: 'rgba(220,220,220,1)',
+          pointStrokeColor: '#fff',
+          data: lastFiveMem
+        }]
+      };
+
+      const startingDatForOpsPerSec = {
+        labels: lastFiveLabels,
+        datasets: [{
+          label: 'Instantaneous Ops/sec',
+          fillColor: '#30a5ff',
+          strokeColor: 'rgba(220,220,220,1)',
+          pointColor: 'rgba(220,220,220,1)',
+          pointStrokeColor: '#fff',
+          data: lastFiveOps
+        }]
+      };
+
+      const defaultOptions = { responsive: true, animationSteps: 15 };
+
+
       const canvas = document.getElementById('line-chart');
-      const ctx = canvas.getContext('2d');
-      this.keyspaceGraph = new Chart(ctx).Line(startingData, { responsive: true });
+      const canvasForMem = document.getElementById('mem-chart');
+      const canvasForOps = document.getElementById('ops-chart');
+
+      this.keyspaceGraph = new Chart(canvas.getContext('2d')).Line(startingData, defaultOptions);
+      this.memGraph = new Chart(canvasForMem.getContext('2d')).Line(startingDataForMem, defaultOptions);
+      this.instantsGraph = new Chart(canvasForOps.getContext('2d')).Line(startingDatForOpsPerSec, defaultOptions);
+
       document.getElementById('js-legend').innerHTML = this.keyspaceGraph.generateLegend();
       this.drawnGraph = true;
     }

@@ -29,7 +29,7 @@ type keysMap struct {
 	Leaf     bool     `json:"leaf"`
 }
 
-// IUnRedis defines the interface that must be implemented
+// IUnRedis describes what unredis does
 type IUnRedis interface {
 	Connect() error
 	DisConnect()
@@ -48,6 +48,7 @@ type UnRedis struct {
 	sync.Mutex
 }
 
+// redisConfig defines the structure of the config accepted by UnRedis
 type redisConfig struct {
 	redisHost     string
 	redisPort     int
@@ -55,6 +56,7 @@ type redisConfig struct {
 	redisDatabase int
 }
 
+// NewUnRedis creates a new unredis instance based on the options passed to it
 func NewUnRedis(redisHost string, redisPort int, redisPassword string, redisDatabase int) IUnRedis {
 	config := &redisConfig{
 		redisHost, redisPort, redisPassword, redisDatabase,
@@ -63,7 +65,7 @@ func NewUnRedis(redisHost string, redisPort int, redisPassword string, redisData
 	return &UnRedis{config: config}
 }
 
-// Connect connects to the reids-server
+// Connect connects to the reids
 func (u *UnRedis) Connect() error {
 	var dbOptions []redis.DialOption
 	if u.config.redisPassword != "" {
@@ -248,6 +250,7 @@ func (u *UnRedis) Exec(command string) (interface{}, error) {
 	return u.processReply(reply), nil
 }
 
+// processFile reads the unredis_stats file and return an array of stats if it exists
 // Let's parse the stats csv file
 // Better still use golang encoding/csv to do this
 // TODO: use encoding/csv package (maybe)

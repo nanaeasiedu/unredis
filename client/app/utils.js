@@ -10,7 +10,3 @@ export const humanizeDate = (date) => {
 
   return `${hours}:${mins}:${secs}`;
 };
-
-export const humanizeData = (data) => {
-
-};

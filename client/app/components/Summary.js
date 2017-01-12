@@ -41,7 +41,7 @@ export default class Summary extends Component {
                 <Icon name="bolt" className="fa-3x" />
               </div>
               <div className="col-sm-9 col-lg-7 widget-right">
-  <div className="large">{data.CPU.used_cpu_sys}</div>
+                <div className="large">{data.CPU.used_cpu_sys}</div>
                 <div className="text-muted">CPU Usage</div>
               </div>
             </div>

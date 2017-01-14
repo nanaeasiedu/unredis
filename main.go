@@ -82,13 +82,13 @@ func main() {
 		for {
 			getStatistics := <-stats
 			table := termtables.CreateTable()
-			table.AddHeaders("Time", "Ops/sec", "Hit Rate", "Keyspace Hits", "Keyspace Misses", "Used Memory (KB)", "Last Save Time")
+			table.AddHeaders("Time", "Ops/sec", "Hit Rate", "Keyspace Hits", "Keyspace Misses", "Used Memory (KB)", "Connected Clients", "Last Save Time")
 
 			for i := 0; i < len(getStatistics); i++ {
 				statInfo := getStatistics[i]
 				createdAtTime := time.Unix(0, statInfo.CreatedAt*int64(time.Millisecond))
 				lastSaveTime := time.Unix(0, statInfo.RDBLastSaveTime*int64(time.Second))
-				table.AddRow(createdAtTime.Format("15:04:05"), statInfo.OpsPerSec, statInfo.HitRate, statInfo.KeyspaceHits, statInfo.KeySpaceMisses, fmt.Sprintf("%.2f", statInfo.UsedMemory), lastSaveTime.Format("02/01/2006 - 15:04:05"))
+				table.AddRow(createdAtTime.Format("15:04:05"), statInfo.OpsPerSec, statInfo.HitRate, statInfo.KeyspaceHits, statInfo.KeySpaceMisses, fmt.Sprintf("%.2f", statInfo.UsedMemory), statInfo.ConnectedClients, lastSaveTime.Format("02/01/2006 - 15:04:05"))
 			}
 
 			fmt.Fprint(writer, table.Render())

@@ -99,6 +99,7 @@ func main() {
 	router.StrictSlash(true)
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	router.HandleFunc("/", homeHandler)
+	router.Handle("/events", serverUnRedis.Broker)
 	apiHandler(router)
 
 	server = &http.Server{

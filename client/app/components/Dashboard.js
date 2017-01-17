@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
-import { getStats } from '../actions';
+import Event from '../services/event';
+import { getStats, getInfo, action, FETCH_STATS_SUCCESS } from '../actions';
 import Summary from './Summary';
 import Graph from './Graph';
 
@@ -12,13 +13,19 @@ export default class Dashboard extends Component {
 
   dashboardInit () {
     this.props.dispatch(getStats());
+    this.props.dispatch(getInfo());
   }
 
   componentDidMount () {
-    this.dashboardInit();
+    const self = this;
+    self.dashboardInit();
+
+    const eventSourceManager = new Event(function (data) {
+      self.props.dispatch(action(FETCH_STATS_SUCCESS, { data }));
+    });
 
     this.timer = setInterval(() => {
-      this.dashboardInit();
+      this.props.dispatch(getInfo());
     }, 5000);
   }
 
@@ -42,8 +49,8 @@ export default class Dashboard extends Component {
           </div>
         </div>
 
-        <Summary data={unredis.data.infoData} />
-        <Graph data={unredis.data.statsData} />
+        {unredis.data.info && (<Summary data={unredis.data.info} />)}
+        {unredis.data.stats && (<Graph data={unredis.data.stats} recent={unredis.recent} />)}
       </div>
     );
   }

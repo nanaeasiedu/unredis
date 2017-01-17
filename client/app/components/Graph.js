@@ -17,32 +17,26 @@ export default class Graph extends Component {
     this.keyspaceGraph = null;
   }
 
-  drawGraph (data, previousData) {
+  drawGraph (props, previousProps) {
     if (this.drawnGraph) {
-      if (_.isEqual(data, previousData)) return;
+      if (_.isEqual(props.recent, previousProps.recent)) return;
 
-      var diff = [];
-      for (var i = 0, l = data.length; i < l; i++) {
-        var dataPoint = _.find(previousData, { created_at: data[i].created_at });
-        if (!dataPoint) diff.push(data[i]);
-      }
+      var point = props.recent;
+      var label = utils.humanizeDate(point.created_at);
+      var hit = point.hit_rate;
+      var keypsaceMisses = point.keyspace_misses;
+      var mem = point.used_memory;
+      var ops = point.instantaneous_ops_per_sec;
 
-      diff.forEach((point) => {
-        var label = utils.humanizeDate(point.created_at);
-        var hit = point.hit_rate;
-        var keypsaceMisses = point.keyspace_misses;
-        var mem = point.used_memory;
-        var ops = point.instantaneous_ops_per_sec;
+      this.keyspaceGraph.addData([hit, keypsaceMisses], label);
+      this.memGraph.addData([mem], label);
+      this.instantsGraph.addData([ops], label);
 
-        this.keyspaceGraph.addData([hit, keypsaceMisses], label);
-        this.memGraph.addData([mem], label);
-        this.instantsGraph.addData([ops], label);
-
-        this.keyspaceGraph.removeData();
-        this.memGraph.removeData();
-        this.instantsGraph.removeData();
-      });
+      this.keyspaceGraph.removeData();
+      this.memGraph.removeData();
+      this.instantsGraph.removeData();
     } else {
+      var data = props.data;
       var labels = [];
       var dataForHitRate = [];
       var dataForMisses = [];
@@ -126,11 +120,11 @@ export default class Graph extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    this.drawGraph(nextProps.data, this.props.data);
+    this.drawGraph(nextProps, this.props);
   }
 
   componentDidMount () {
-    this.drawGraph(this.props.data);
+    this.drawGraph(this.props);
   }
 
   render () {

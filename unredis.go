@@ -11,6 +11,8 @@ import (
 
 	"log"
 
+	"encoding/json"
+
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -45,6 +47,7 @@ type UnRedis struct {
 	Connected  bool
 	config     *redisConfig
 	stats      []*stat
+	Broker     *Broker
 	sync.Mutex
 }
 
@@ -62,7 +65,14 @@ func NewUnRedis(redisHost string, redisPort int, redisPassword string, redisData
 		redisHost, redisPort, redisPassword, redisDatabase,
 	}
 
-	return &UnRedis{config: config}
+	unredis := &UnRedis{
+		config: config,
+		Broker: NewBrokerServer(),
+	}
+
+	go unredis.Broker.Listen()
+
+	return unredis
 }
 
 // Connect connects to the reids
@@ -81,6 +91,7 @@ func (u *UnRedis) Connect() error {
 
 	u.Connected = true
 	u.Connection = conn
+
 	return nil
 }
 
@@ -288,6 +299,16 @@ func (u *UnRedis) collect() (*stat, error) {
 	return newStatFromInfo(info), nil
 }
 
+func (u *UnRedis) SendMessageToBroker(data *stat) {
+	dataToString, err := json.Marshal(data)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	u.Broker.Notifier <- dataToString
+}
+
 // CollectStats gets some necessary information regarding the redis server
 // it uses a ticker to collect the stats
 func (u *UnRedis) CollectStats(c chan os.Signal) chan []*stat {
@@ -303,19 +324,20 @@ func (u *UnRedis) CollectStats(c chan os.Signal) chan []*stat {
 		for {
 			select {
 			case <-ticker.C:
-				stat, err := u.collect()
+				collectedStat, err := u.collect()
 				if err != nil {
 					log.Println(err)
 				}
 
 				u.Lock()
-				u.stats = append(u.stats, stat)
+				u.stats = append(u.stats, collectedStat)
 				// truncate the stats array when the length is greater than 10
 				if len(u.stats) > 10 {
 					u.stats = u.stats[len(u.stats)-10:]
 				}
 				u.Unlock()
 				stats <- u.stats
+				u.SendMessageToBroker(collectedStat)
 
 			case <-c:
 				ticker.Stop()

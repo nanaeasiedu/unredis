@@ -9,7 +9,7 @@ type Broker struct {
 	Notifier       chan []byte
 	clients        map[chan []byte]bool
 	closingClients chan chan []byte
-	newClient      chan chan []byte
+	newClients     chan chan []byte
 }
 
 func NewBrokerServer() (broker *Broker) {
@@ -18,7 +18,7 @@ func NewBrokerServer() (broker *Broker) {
 		Notifier:       make(chan []byte, 1),
 		clients:        make(map[chan []byte]bool),
 		closingClients: make(chan chan []byte),
-		newClient:      make(chan chan []byte),
+		newClients:     make(chan chan []byte),
 	}
 
 	go broker.Listen()
@@ -30,7 +30,7 @@ func (b *Broker) Listen() {
 	for {
 		select {
 
-		case newClient := <-b.newClient:
+		case newClient := <-b.newClients:
 			b.clients[newClient] = true
 
 		case closedClient := <-b.closingClients:
@@ -59,7 +59,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	messageChannel := make(chan []byte)
-	b.newClient <- messageChannel
+	b.newClients <- messageChannel
 
 	defer func() {
 		b.closingClients <- messageChannel
@@ -72,7 +72,9 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case <-notify:
 			return
 		default:
-			fmt.Fprintf(w, "data: %s\n\n", <-messageChannel)
+			data := <-messageChannel
+			// SSE data formatting
+			fmt.Fprintf(w, "data: %s\n\n", data)
 			flusher.Flush()
 		}
 	}

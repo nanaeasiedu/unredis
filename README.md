@@ -21,6 +21,22 @@ $ make release
 
 ## Usage
 
+```
+Usage ./unredis -redis-host HOST -redis-port PORT
+  -redis-db int
+    	The redis database to connect to
+  -redis-host string
+    	The host redis server can be found on (default "localhost")
+  -redis-password string
+    	The password for authentication
+  -redis-port int
+    	The port is redis server is running on (default 6379)
+  -srv-host string
+    	The address to run the server on (default "localhost")
+  -srv-port int
+    	The port to run the server on (default 3000)
+```
+
 Basic usage, run:
 
 ```bash
@@ -30,7 +46,7 @@ $ unredis
 Specify the redis port and host, run:
 
 ```bash
-$ unredis -redis-port PORT_NUMBER -redis-host HOSTNAME
+$ unredis -redis-port PORT -redis-host=HOST
 ```
 
 For more information:
@@ -51,7 +67,7 @@ The stats data shown on the dashboard is ephemeral. Only the last 10 stats is st
 - [x] Add OPS/SEC widget to the dashboard
 - [] Display table containing redis server information
 - [x] Display the stats in the terminal
-- [] Use event source to send new stats data to the client
+- [x] Use event source to send new stats data to the client
 
 ## Technologies
 

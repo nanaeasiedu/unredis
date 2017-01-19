@@ -10,6 +10,11 @@ export default class Graph extends Component {
     this.instantsGraph = null;
 
     this.drawnGraph = false;
+
+    this.keyspaceConfig = null;
+    this.memConfig = null;
+    this.instantsConfig = null;
+    this.lastTime = null;
   }
 
   componentWillUnmount () {
@@ -17,10 +22,11 @@ export default class Graph extends Component {
     this.keyspaceGraph = null;
   }
 
-  drawGraph (props, previousProps) {
+  drawGraph (props, prevProps) {
     if (this.drawnGraph) {
-      if (_.isEqual(props.recent, previousProps.recent)) return;
+      if (_.isEqual(props.recent, prevProps.recent)) return;
 
+      this.lastTime = props.recent.created_at;
       var point = props.recent;
       var label = utils.humanizeDate(point.created_at);
       var hit = point.hit_rate;
@@ -33,9 +39,14 @@ export default class Graph extends Component {
       this.instantsGraph.addData([ops], label);
 
       this.keyspaceGraph.removeData();
-      this.memGraph.removeData();
       this.instantsGraph.removeData();
-    } else {
+      this.memGraph.removeData();
+  } else {
+      const defaultOptions = {
+        responsive: true,
+        animationSteps: 15
+      };
+
       var data = props.data;
       var labels = [];
       var dataForHitRate = [];
@@ -56,8 +67,9 @@ export default class Graph extends Component {
       });
 
       var lastFiveLabels = labels.slice(labels.length - 5);
+      var lastFiveLabelsAnother = [...lastFiveLabels];
 
-      const startingData = {
+      const keyspaceConfig = {
         labels: labels,
         datasets: [
           {
@@ -79,7 +91,7 @@ export default class Graph extends Component {
         ]
       };
 
-      const startingDataForMem = {
+      const memConfig = {
         labels: lastFiveLabels,
         datasets: [{
           label: 'Memory Usage',
@@ -91,8 +103,8 @@ export default class Graph extends Component {
         }]
       };
 
-      const startingDatForOpsPerSec = {
-        labels: lastFiveLabels,
+      const instantsConfig = {
+        labels: lastFiveLabelsAnother,
         datasets: [{
           label: 'Instantaneous Ops/sec',
           fillColor: '#30a5ff',
@@ -103,24 +115,20 @@ export default class Graph extends Component {
         }]
       };
 
-      const defaultOptions = { responsive: true, animationSteps: 15 };
-
-
       const canvas = document.getElementById('line-chart');
       const canvasForMem = document.getElementById('mem-chart');
       const canvasForOps = document.getElementById('ops-chart');
 
-      this.keyspaceGraph = new Chart(canvas.getContext('2d')).Line(startingData, defaultOptions);
-      this.memGraph = new Chart(canvasForMem.getContext('2d')).Line(startingDataForMem, defaultOptions);
-      this.instantsGraph = new Chart(canvasForOps.getContext('2d')).Line(startingDatForOpsPerSec, defaultOptions);
-
+      this.keyspaceGraph = new Chart(canvas.getContext('2d')).Line(keyspaceConfig, defaultOptions);
+      this.memGraph = new Chart(canvasForMem.getContext('2d')).Line(memConfig, defaultOptions);
+      this.instantsGraph = new Chart(canvasForOps.getContext('2d')).Line(instantsConfig, defaultOptions);
       document.getElementById('js-legend').innerHTML = this.keyspaceGraph.generateLegend();
       this.drawnGraph = true;
     }
   }
 
-  componentWillReceiveProps (nextProps) {
-    this.drawGraph(nextProps, this.props);
+  componentDidUpdate (prevProps) {
+    this.drawGraph(this.props, prevProps);
   }
 
   componentDidMount () {
@@ -136,7 +144,7 @@ export default class Graph extends Component {
             <div className="panel panel-default">
               <div className="panel-heading">Keyspace</div>
               <div className="panel-body">
-                <div id="js-legend" className="chart-legend"></div>
+                <div id="js-legend"></div>
                 <div className="canvas-wrapper">
                   <canvas className="stats-chart" id="line-chart" height="200" width="600"></canvas>
                 </div>
@@ -150,7 +158,6 @@ export default class Graph extends Component {
             <div className="panel panel-default">
               <div className="panel-heading">Memory Usage</div>
               <div className="panel-body">
-                <div id="mem-legend" className="chart-legend"></div>
                 <div className="canvas-wrapper">
                   <canvas className="stats-chart" id="mem-chart" height="200" width="600"></canvas>
                 </div>
@@ -162,7 +169,6 @@ export default class Graph extends Component {
             <div className="panel panel-default">
               <div className="panel-heading">Instantaneous Ops Per Sec</div>
               <div className="panel-body">
-                <div id="ops-legend" className="chart-legend"></div>
                 <div className="canvas-wrapper">
                   <canvas className="stats-chart" id="ops-chart" height="200" width="600"></canvas>
                 </div>

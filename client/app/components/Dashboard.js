@@ -8,7 +8,12 @@ export default class Dashboard extends Component {
   constructor (props) {
     super(props);
 
-    this.timer = null;
+    const self = this;
+
+    self.timer = null;
+    self.eventSourceManager = new Event(function (data) {
+      self.props.dispatch(action(FETCH_STATS_SUCCESS, { data }));
+    });
   }
 
   dashboardInit () {
@@ -17,16 +22,15 @@ export default class Dashboard extends Component {
   }
 
   componentDidMount () {
-    const self = this;
-    self.dashboardInit();
-
-    const eventSourceManager = new Event(function (data) {
-      self.props.dispatch(action(FETCH_STATS_SUCCESS, { data }));
-    });
-
+    this.dashboardInit();
+    this.eventSourceManager.start();
     this.timer = setInterval(() => {
       this.props.dispatch(getInfo());
     }, 5000);
+  }
+
+  componentWillUnmount () {
+    this.eventSourceManager.stop();
   }
 
   render () {

@@ -65,8 +65,8 @@ The stats data shown on the dashboard is ephemeral. Only the last 10 stats is st
 ## TODO
 
 - [x] Add OPS/SEC widget to the dashboard
-- [] Display table containing redis server information
-- [] Add latency to stats
+- [ ] Display table containing redis server information
+- [ ] Add latency to stats
 - [x] Display the stats in the terminal
 - [x] Use event source to send new stats data to the client
 

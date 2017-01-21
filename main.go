@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/apcera/termtables"
+	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/mux"
 	"github.com/gosuri/uilive"
 )
@@ -33,7 +34,10 @@ const (
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(200)
-	var indexTemplate = template.Must(template.New("index").ParseFiles("templates/layout.html", "templates/index.html"))
+
+	layoutTemplate, _ := Asset("static/templates/layout.html")
+	index, _ := Asset("static/templates/index.html")
+	var indexTemplate = template.Must(template.New("index").Parse(string(layoutTemplate[:]) + string(index[:])))
 
 	indexTemplate.ExecuteTemplate(w, "base", map[string]interface{}{
 		"Title":   "HomePage",
@@ -97,7 +101,10 @@ func main() {
 
 	router := mux.NewRouter()
 	router.StrictSlash(true)
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	router.PathPrefix("/static/").
+		Handler(http.StripPrefix("/static/", http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: "static"})))
+
 	router.HandleFunc("/", homeHandler)
 	router.Handle("/events", serverUnRedis.Broker)
 	apiHandler(router)

@@ -1,6 +1,6 @@
 ## UNREDIS - Another Redis Monitoring Tool
 
-Another redis monitoring tool built with Golang
+Another redis monitoring tool built with Golang - a realtime dashboard for redis (terminal and web)
 
 ## Installation
 
@@ -67,6 +67,7 @@ The stats data shown on the dashboard is ephemeral. Only the last 10 stats is st
 - [x] Add OPS/SEC widget to the dashboard
 - [ ] Display table containing redis server information
 - [ ] Add latency to stats
+- [ ] Measure stats across several redis instances
 - [x] Display the stats in the terminal
 - [x] Use event source to send new stats data to the client
 

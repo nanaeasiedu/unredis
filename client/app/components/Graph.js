@@ -10,23 +10,18 @@ export default class Graph extends Component {
     this.instantsGraph = null;
 
     this.drawnGraph = false;
-
-    this.keyspaceConfig = null;
-    this.memConfig = null;
-    this.instantsConfig = null;
-    this.lastTime = null;
   }
 
   componentWillUnmount () {
     this.keyspaceGraph.destroy();
-    this.keyspaceGraph = null;
+    this.memConfig.destroy();
+    this.instantsGraph.destroy();
   }
 
   drawGraph (props, prevProps) {
     if (this.drawnGraph) {
       if (_.isEqual(props.recent, prevProps.recent)) return;
 
-      this.lastTime = props.recent.created_at;
       var point = props.recent;
       var label = utils.humanizeDate(point.created_at);
       var hit = point.hit_rate;
@@ -144,7 +139,7 @@ export default class Graph extends Component {
             <div className="panel panel-default">
               <div className="panel-heading">Keyspace</div>
               <div className="panel-body">
-                <div id="js-legend"></div>
+                <div id="js-legend" className="chart-legend"></div>
                 <div className="canvas-wrapper">
                   <canvas className="stats-chart" id="line-chart" height="200" width="600"></canvas>
                 </div>

@@ -31,6 +31,7 @@ export default class Dashboard extends Component {
 
   componentWillUnmount () {
     this.eventSourceManager.stop();
+    clearInterval(this.timer);
   }
 
   render () {

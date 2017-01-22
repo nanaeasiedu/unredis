@@ -5,7 +5,6 @@ import { hashHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 
 import Root from './containers/Root';
-import { FETCH_STATS_SUCCESS, action } from './actions';
 import { configure } from './store';
 import sagas from './sagas';
 

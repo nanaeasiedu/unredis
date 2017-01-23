@@ -25,7 +25,7 @@ var (
 	doubleLineEnding = regexp.MustCompile(`(\r?\n){2}`)
 )
 
-type keysMap struct {
+type keyNode struct {
 	Count    int      `json:"count"`
 	Children []string `json:"children"`
 	Leaf     bool     `json:"leaf"`
@@ -151,7 +151,7 @@ func (u *UnRedis) GetKeysTree(prefix string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	keysTreeMap := make(map[string]*keysMap)
+	keysTreeMap := make(map[string]*keyNode)
 
 	// convert a string like this: users:1 users:2, users:3:name, users
 	// to
@@ -173,7 +173,7 @@ func (u *UnRedis) GetKeysTree(prefix string) (map[string]interface{}, error) {
 				valueInTreeMap.Leaf = true
 			}
 		} else {
-			newTree := new(keysMap)
+			newTree := new(keyNode)
 			newTree.Count = len(keysArray) - 1
 			if len(keysArray) > 1 {
 				newTree.Children = append(newTree.Children, keysArray[1])

@@ -1,19 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
-	"log"
-
-	"encoding/json"
-
 	"github.com/garyburd/redigo/redis"
+	"github.com/ngenerio/unredis/sse"
 )
 
 const (
@@ -47,7 +46,7 @@ type UnRedis struct {
 	Connected  bool
 	config     *redisConfig
 	stats      []*stat
-	Broker     *Broker
+	Broker     *sse.Broker
 	sync.Mutex
 }
 
@@ -67,7 +66,7 @@ func NewUnRedis(redisHost string, redisPort int, redisPassword string, redisData
 
 	unredis := &UnRedis{
 		config: config,
-		Broker: NewBrokerServer(),
+		Broker: sse.NewBrokerServer(),
 	}
 
 	go unredis.Broker.Listen()
